@@ -8,10 +8,10 @@ const upload = multer({ dest: 'uploads/' });
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-app.use(express.static('public')); // Serve arquivos estáticos da pasta "public"
+app.use(express.static('public'));
 
 app.get('/', (req, res) => {
-    res.render('index', { resultArredondado: null, resultTruncado: null });
+    res.render('index', { resultArredondado: null, resultTruncado: null, interceptoArredondado: null, interceptoTruncado: null });
 });
 
 app.post('/calcular', upload.fields([{ name: 'fileX' }, { name: 'fileY' }]), (req, res) => {
@@ -47,19 +47,33 @@ app.post('/calcular', upload.fields([{ name: 'fileX' }, { name: 'fileY' }]), (re
         return numerador / denominador;
     };
 
+    // Função para calcular o intercepto
+    const calcularIntercepto = (x, y, m) => {
+        const n = x.length;
+        const somaX = x.reduce((acc, xi) => acc + xi, 0);
+        const somaY = y.reduce((acc, yi) => acc + yi, 0);
+
+        return (somaY - m * somaX) / n;
+    };
+
     try {
         const inclinacao = calcularInclinacao(x, y);
+        const intercepto = calcularIntercepto(x, y, inclinacao);
 
-        // Arredondado para 2 casas decimais
+        // Arredondar e truncar a inclinação
         const inclinacaoArredondada = parseFloat(inclinacao.toFixed(2));
-
-        // Truncado para 2 casas decimais
         const inclinacaoTruncada = Math.floor(inclinacao * 100) / 100;
 
-        // Envie ambos os resultados para o template
-        res.render('index', { 
+        // Arredondar e truncar o intercepto
+        const interceptoArredondado = parseFloat(intercepto.toFixed(2));
+        const interceptoTruncado = Math.floor(intercepto * 100) / 100;
+
+        // Enviar os resultados para o template
+        res.render('index', {
             resultArredondado: inclinacaoArredondada,
-            resultTruncado: inclinacaoTruncada
+            resultTruncado: inclinacaoTruncada,
+            interceptoArredondado: interceptoArredondado,
+            interceptoTruncado: interceptoTruncado
         });
     } catch (error) {
         res.status(400).send(error.message);
