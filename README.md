@@ -1,1 +1,1 @@
-# inclinacao
+# Calculadora de Inclinação e Intercepto.
